@@ -112,8 +112,7 @@ if (!defined('ABSPATH')) {
         // Payment listener/API hook.
           add_action( 'woocommerce_api_wc_fliqpay_gateway', array( $this, 'complete_fliqpay_transaction' ) );
 
-        
-        
+
         
 
       }
@@ -227,7 +226,7 @@ if (!defined('ABSPATH')) {
         
         $fliqpay_params = array(
           'Key' => $this->business_key,
-          'callbackUrl' => $this->callbackUrl,
+          // 'callbackUrl' => $this->callbackUrl,
           'redirect_url' => $this->get_return_url($order)
         );
   
@@ -331,25 +330,28 @@ if (!defined('ABSPATH')) {
         
          echo '<div id="fliqpay_form"><form id="order_review" method="post" action="' . WC()->api_request_url( 'WC_Fliqpay_Gateway' ) . '"></form>
          
-         <form method="POST" action="https://api.fliqpay.com/i/paymentButton">
-
-          <input name="businessKey" value="' . $fliqpay_params['key'] . '" hidden />
-          <input name="description" value="Black leather affordable shoe" hidden />
-          <input name="customerName" value="' . $fliqpay_params['name'] . '" hidden />
-          <input name="customerEmail" value="' . $fliqpay_params['email'] . '" hidden />
-          <input name="callbackUrl" value="' . $fliqpay_params['callbackUrl'] . '" hidden />
-          <input name="amount" type="number" value="' . $fliqpay_params['amount'] . '" hidden />
-          <input name="currency" value="NGN" hidden />
-          <input name="isAmountFixed" value="true" hidden />
-          <input name="useCurrenciesInWalletSettings" value="false" hidden />
-          <input name="acceptedCurrencies" value="BTC,LTC,USDT" hidden />
-          <input name="orderId" value="' . $fliqpay_params['orderId'] . '" hidden />
-          <input name="redirectUrl" value="' . $fliqpay_params['redirect_url'] . '" hidden />
-          <input name="settlementDestination" value="bank_account" hidden />
-          <button type="submit">Pay with Fliqpay</button>
-
-        </form>
          
+
+        <!--Form Option-->
+<form action="http://stagingapi.flq.rocks/i/paymentButton/">
+
+    <input name="businessKey" value="' . $fliqpay_params['key'] . '" hidden />
+  	<input name="name" value="" hidden />
+  	<input name="description" value="" hidden />
+  	<input name="currency" value="NGN" hidden />
+    <input name="customerName" value="' . $fliqpay_params['name'] . '" hidden />
+    <input name="customerEmail" value="' . $fliqpay_params['email'] . '" hidden />
+    <input name="orderId" value="' . $fliqpay_params['orderId'] . '" hidden />
+    <input name="amount" type="number" value="' . $fliqpay_params['amount'] . '" hidden />
+    <input name="isAmountFixed" value="true" hidden />
+  	<input name="useCurrenciesInWalletSettings" value="true" hidden />
+    <input name="acceptedCurrencies" value="" hidden />
+    <input name="settlementDestination" value="fliqpay_wallet" hidden />
+    <button type="submit">Pay with Fliqpay</button>
+    
+</form> 
+
+
          
          
          
@@ -359,31 +361,17 @@ if (!defined('ABSPATH')) {
 
 
       }
-      /**
-       * Verify Korapay payment.
-       */
-      
-      public function complete_fliqpay_transaction(){
+     
 
-        global $woocommerce;
-        $request_json = file_get_contents('php://input');
-        $valid_order_id = str_replace("WC-", "", $request_data["orderId"]);
-        $order = new WC_Order($valid_order_id);
-
-        if ($request_data["status"] == "successful") {
-          $order->update_status("processing", 'Order has been paid.');
-          $order->payment_complete();
-      } else if ($request_data["status"] == "unresolved") {
-          $order->update_status('processing', 'Order is processing.');
-      } else if ($request_data["status"] == "failed") {
-          $order->update_status('on-hold', 'Order is failed. Please contact support@fliqpay');
+      public function complete_fliqpay_transaction() {
+        $order = wc_get_order( $_GET['id'] );
+        $order->payment_complete();
+        $order->reduce_order_stock();
+       
+        update_option('webhook_debug', $_GET);
       }
 
-      }
-                /*
-                * In case you need a webhook, like PayPal IPN etc
-                */
-      }
+   
 
      
 
@@ -393,6 +381,8 @@ if (!defined('ABSPATH')) {
 
 
 
+
+  }
 
   }
   

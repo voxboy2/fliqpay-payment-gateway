@@ -25,3 +25,4 @@ Be glad you have successfully implemented a crypto payment gateway in your wordp
 
 
 
+# fliqpay-payment-plugin
